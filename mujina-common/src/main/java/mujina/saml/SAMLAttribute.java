@@ -1,11 +1,18 @@
 package mujina.saml;
 
+import lombok.Data;
+
 import java.util.List;
 
+@Data
 public class SAMLAttribute {
 
-    private final String name;
-    private final List<String> values;
+    private String name;
+    private List<String> values;
+
+    public SAMLAttribute() {
+
+    }
 
     public SAMLAttribute(String name, List<String> values) {
         this.name = name;

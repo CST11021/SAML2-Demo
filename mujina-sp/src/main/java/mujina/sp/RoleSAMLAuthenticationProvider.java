@@ -13,4 +13,5 @@ public class RoleSAMLAuthenticationProvider extends SAMLAuthenticationProvider {
     protected Collection<? extends GrantedAuthority> getEntitlements(SAMLCredential credential, Object userDetail) {
         return AuthorityUtils.createAuthorityList("ROLE_USER");
     }
+
 }

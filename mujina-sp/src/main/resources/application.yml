@@ -27,9 +27,9 @@ sp:
   passphrase: secret
   # Resource URL for the idp metadata
   idp_metadata_url: classpath:metadata/mujina.local.idp.metadata.xml
-  # SingleSignOnServiceLocation
+  # 单点登录服务
   single_sign_on_service_location: http://localhost:8080/SingleSignOnService
-  # ACS location
+  # ACS location：登录后跳转的URL地址
   acs_location_path: /saml/SSO
   # Protocol binding
   protocol_binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST

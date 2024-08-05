@@ -7,8 +7,6 @@ import mujina.saml.KeyStoreLocator;
 import org.opensaml.xml.Configuration;
 import org.opensaml.xml.security.BasicSecurityConfiguration;
 import org.opensaml.xml.signature.SignatureConstants;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.saml.key.JKSKeyManager;
 
 import java.security.KeyStore;
@@ -22,13 +20,15 @@ import java.util.Enumeration;
 public abstract class SharedConfiguration {
 
     @JsonIgnore
-    protected static final Logger LOG = LoggerFactory.getLogger(SharedConfiguration.class);
-    @JsonIgnore
     private JKSKeyManager keyManager;
+    /** 秘钥库密码 */
     private String keystorePassword = "secret";
     private boolean needsSigning;
+    /** 签名算法（默认） */
     private String defaultSignatureAlgorithm = SignatureConstants.ALGO_ID_SIGNATURE_RSA_SHA256;
+    /** 签名算法 */
     private String signatureAlgorithm;
+    /** 在SAML中，entityID是用于唯一标识SAML实体（如身份提供者或服务提供者）的字符串。 */
     private String entityId;
 
     public SharedConfiguration(JKSKeyManager keyManager) {
@@ -51,18 +51,13 @@ public abstract class SharedConfiguration {
         this.entityId = newEntityId;
     }
 
-    public void injectCredential(final String certificate, final String pemKey) {
-        try {
-            KeyStore keyStore = keyManager.getKeyStore();
-            if (keyStore.containsAlias(entityId)) {
-                keyStore.deleteEntry(entityId);
-            }
-            KeyStoreLocator.addPrivateKey(keyStore, entityId, pemKey, certificate, keystorePassword);
-        } catch (Exception e) {
-            throw new RuntimeException("Unable to append signing credential", e);
-        }
-    }
-
+    /**
+     * 重置秘钥对
+     *
+     * @param alias
+     * @param privateKey
+     * @param certificate
+     */
     protected void resetKeyStore(String alias, String privateKey, String certificate) {
         try {
             KeyStore keyStore = keyManager.getKeyStore();

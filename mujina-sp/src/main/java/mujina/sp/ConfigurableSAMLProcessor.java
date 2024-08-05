@@ -1,6 +1,6 @@
 package mujina.sp;
 
-import mujina.api.SpConfiguration;
+import mujina.config.SpConfiguration;
 import org.opensaml.common.SAMLException;
 import org.opensaml.saml2.metadata.AssertionConsumerService;
 import org.opensaml.saml2.metadata.Endpoint;

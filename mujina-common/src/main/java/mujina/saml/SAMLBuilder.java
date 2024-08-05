@@ -91,30 +91,29 @@ public class SAMLBuilder {
             assertion.setSubject(subject);
         }
 
-        Issuer issuer = buildIssuer(entityId);
-
         Audience audience = buildSAMLObject(Audience.class, Audience.DEFAULT_ELEMENT_NAME);
         audience.setAudienceURI(principal.getServiceProviderEntityID());
+
         AudienceRestriction audienceRestriction = buildSAMLObject(AudienceRestriction.class, AudienceRestriction.DEFAULT_ELEMENT_NAME);
         audienceRestriction.getAudiences().add(audience);
 
-        Conditions conditions = buildSAMLObject(Conditions.class, Conditions.DEFAULT_ELEMENT_NAME);
-        conditions.setNotBefore(new DateTime().minusMinutes(3));
-        conditions.setNotOnOrAfter(new DateTime().plusMinutes(3));
-        conditions.getAudienceRestrictions().add(audienceRestriction);
-        assertion.setConditions(conditions);
-
-        AuthnStatement authnStatement = buildAuthnStatement(new DateTime(), entityId, authnContextClassRefValue);
-
-        assertion.setIssuer(issuer);
-        assertion.getAuthnStatements().add(authnStatement);
-
+        assertion.setConditions(buildConditions(audienceRestriction));
+        assertion.setIssuer(buildIssuer(entityId));
+        assertion.getAuthnStatements().add(buildAuthnStatement(new DateTime(), entityId, authnContextClassRefValue));
         assertion.getAttributeStatements().add(buildAttributeStatement(principal.getAttributes()));
-
         assertion.setID(randomSAMLId());
         assertion.setIssueInstant(new DateTime());
 
         return assertion;
+    }
+
+    private static Conditions buildConditions(AudienceRestriction audienceRestriction) {
+        Conditions conditions = buildSAMLObject(Conditions.class, Conditions.DEFAULT_ELEMENT_NAME);
+        conditions.setNotBefore(new DateTime().minusMinutes(3));
+        conditions.setNotOnOrAfter(new DateTime().plusMinutes(3));
+        conditions.getAudienceRestrictions().add(audienceRestriction);
+
+        return conditions;
     }
 
     public static void signAssertion(SignableXMLObject signableXMLObject, Credential signingCredential) throws MarshallingException, SignatureException {

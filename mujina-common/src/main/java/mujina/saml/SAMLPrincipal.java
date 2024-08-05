@@ -20,6 +20,7 @@ public class SAMLPrincipal implements Principal {
 
     private final List<SAMLAttribute> attributes = new ArrayList<>();
 
+    /** 用户名 */
     private String nameID;
     private String nameIDType;
 
@@ -41,4 +42,5 @@ public class SAMLPrincipal implements Principal {
     public String getName() {
         return nameID;
     }
+
 }

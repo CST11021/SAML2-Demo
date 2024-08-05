@@ -1,11 +1,10 @@
 package mujina.idp;
 
-import mujina.api.IdpConfiguration;
+import mujina.config.IdpConfiguration;
 import mujina.saml.ProxiedSAMLContextProviderLB;
 import mujina.saml.SAMLBuilder;
 import mujina.saml.SAMLPrincipal;
 import org.joda.time.DateTime;
-import org.opensaml.common.SAMLObject;
 import org.opensaml.common.binding.BasicSAMLMessageContext;
 import org.opensaml.common.binding.decoding.SAMLMessageDecoder;
 import org.opensaml.common.binding.encoding.SAMLMessageEncoder;
@@ -29,6 +28,7 @@ import org.opensaml.xml.validation.ValidatorSuite;
 import org.springframework.security.saml.context.SAMLMessageContext;
 import org.springframework.security.saml.key.KeyManager;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.net.URI;
@@ -42,9 +42,13 @@ import static org.opensaml.xml.Configuration.getValidatorSuite;
 
 public class SAMLMessageHandler {
 
+    /** 秘钥管理器 */
     private final KeyManager keyManager;
+    /** SAML消息解码 */
     private final Collection<SAMLMessageDecoder> decoders;
-    private final SAMLMessageEncoder encoder;
+    /** SAML消息编码 */
+    @Resource
+    private SAMLMessageEncoder encoder;
     private final SecurityPolicyResolver resolver;
     private final IdpConfiguration idpConfiguration;
 
@@ -52,10 +56,9 @@ public class SAMLMessageHandler {
     private final ProxiedSAMLContextProviderLB proxiedSAMLContextProviderLB;
 
     public SAMLMessageHandler(KeyManager keyManager, Collection<SAMLMessageDecoder> decoders,
-                              SAMLMessageEncoder encoder, SecurityPolicyResolver securityPolicyResolver,
+                              SecurityPolicyResolver securityPolicyResolver,
                               IdpConfiguration idpConfiguration, String idpBaseUrl) throws URISyntaxException {
         this.keyManager = keyManager;
-        this.encoder = encoder;
         this.decoders = decoders;
         this.resolver = securityPolicyResolver;
         this.idpConfiguration = idpConfiguration;
@@ -65,49 +68,86 @@ public class SAMLMessageHandler {
         this.proxiedSAMLContextProviderLB = new ProxiedSAMLContextProviderLB(new URI(idpBaseUrl));
     }
 
-    public SAMLMessageContext extractSAMLMessageContext(HttpServletRequest request, HttpServletResponse response, boolean postRequest) throws ValidationException, SecurityException, MessageDecodingException, MetadataProviderException {
-        SAMLMessageContext messageContext = new SAMLMessageContext();
+    /**
+     * 抽取SAMLMessageContext
+     *
+     * @param request
+     * @param response
+     * @param postRequest
+     * @return
+     * @throws ValidationException
+     * @throws SecurityException
+     * @throws MessageDecodingException
+     * @throws MetadataProviderException
+     */
+    public SAMLMessageContext extractSAMLMessageContext(HttpServletRequest request, HttpServletResponse response, boolean postRequest)
+            throws ValidationException, SecurityException, MessageDecodingException, MetadataProviderException {
 
-        proxiedSAMLContextProviderLB.populateGenericContext(request, response, messageContext);
-
+        // 创建SAMLMessageContext
+        SAMLMessageContext messageContext = creatSAMLMessageContext(request, response);
         messageContext.setSecurityPolicyResolver(resolver);
 
-        SAMLMessageDecoder samlMessageDecoder = samlMessageDecoder(postRequest);
-        samlMessageDecoder.decode(messageContext);
+        // 做解码
+        doDecode(messageContext, postRequest);
 
-        SAMLObject inboundSAMLMessage = messageContext.getInboundSAMLMessage();
-
-        AuthnRequest authnRequest = (AuthnRequest) inboundSAMLMessage;
-        //lambda is poor with Exceptions
+        // 做校验
+        AuthnRequest authnRequest = (AuthnRequest) messageContext.getInboundSAMLMessage();
         for (ValidatorSuite validatorSuite : validatorSuites) {
             validatorSuite.validate(authnRequest);
         }
         return messageContext;
     }
 
-    private SAMLMessageDecoder samlMessageDecoder(boolean postRequest) {
-        return decoders.stream().filter(samlMessageDecoder -> postRequest ?
-                        samlMessageDecoder.getBindingURI().equals(SAMLConstants.SAML2_POST_BINDING_URI) :
-                        samlMessageDecoder.getBindingURI().equals(SAMLConstants.SAML2_REDIRECT_BINDING_URI))
-                .findAny()
-                .orElseThrow(() -> new RuntimeException(String.format("Only %s and %s are supported",
-                        SAMLConstants.SAML2_REDIRECT_BINDING_URI,
-                        SAMLConstants.SAML2_POST_BINDING_URI)));
+    private SAMLMessageContext creatSAMLMessageContext(HttpServletRequest request, HttpServletResponse response) throws MetadataProviderException {
+        SAMLMessageContext messageContext = new SAMLMessageContext();
+        proxiedSAMLContextProviderLB.populateGenericContext(request, response, messageContext);
+
+        return messageContext;
     }
 
-    @SuppressWarnings("unchecked")
-    public void sendAuthnResponse(SAMLPrincipal principal,
-                                  String authnContextClassRefValue,
-                                  HttpServletResponse response) throws MarshallingException, SignatureException, MessageEncodingException {
+    private void doDecode(SAMLMessageContext messageContext, boolean postRequest) throws MessageDecodingException, SecurityException {
+        // 解码
+        SAMLMessageDecoder samlMessageDecoder = findSamlMessageDecoder(postRequest);
+        if (samlMessageDecoder == null) {
+            throw new RuntimeException(String.format("Only %s and %s are supported",
+                    SAMLConstants.SAML2_REDIRECT_BINDING_URI,
+                    SAMLConstants.SAML2_POST_BINDING_URI));
+        }
+
+        samlMessageDecoder.decode(messageContext);
+    }
+
+    private SAMLMessageDecoder findSamlMessageDecoder(boolean postRequest) {
+        String bindingUri = postRequest ? SAMLConstants.SAML2_POST_BINDING_URI : SAMLConstants.SAML2_REDIRECT_BINDING_URI;
+
+        for (SAMLMessageDecoder decoder : decoders) {
+            if (decoder.getBindingURI().equals(bindingUri)) {
+                return decoder;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * 发送SAML响应
+     *
+     * @param principal                 用户信息
+     * @param authnContextClassRefValue 身份验证的级别
+     * @param response
+     * @throws MarshallingException
+     * @throws SignatureException
+     * @throws MessageEncodingException
+     */
+    public void sendAuthnResponse(SAMLPrincipal principal, String authnContextClassRefValue, HttpServletResponse response)
+            throws MarshallingException, SignatureException, MessageEncodingException {
         Status status = buildStatus(StatusCode.SUCCESS_URI);
 
         String entityId = idpConfiguration.getEntityId();
         Credential signingCredential = resolveCredential(entityId);
 
         Response authResponse = buildSAMLObject(Response.class, Response.DEFAULT_ELEMENT_NAME);
-        Issuer issuer = buildIssuer(entityId);
-
-        authResponse.setIssuer(issuer);
+        authResponse.setIssuer(buildIssuer(entityId));
         authResponse.setID(SAMLBuilder.randomSAMLId());
         authResponse.setIssueInstant(new DateTime());
         authResponse.setInResponseTo(principal.getRequestID());
@@ -117,25 +157,27 @@ public class SAMLMessageHandler {
 
         authResponse.getAssertions().add(assertion);
         authResponse.setDestination(principal.getAssertionConsumerServiceURL());
-
         authResponse.setStatus(status);
 
         Endpoint endpoint = buildSAMLObject(Endpoint.class, SingleSignOnService.DEFAULT_ELEMENT_NAME);
         endpoint.setLocation(principal.getAssertionConsumerServiceURL());
 
-        HttpServletResponseAdapter outTransport = new HttpServletResponseAdapter(response, false);
 
-        BasicSAMLMessageContext messageContext = new BasicSAMLMessageContext();
 
-        messageContext.setOutboundMessageTransport(outTransport);
-        messageContext.setPeerEntityEndpoint(endpoint);
-        messageContext.setOutboundSAMLMessage(authResponse);
-        messageContext.setOutboundSAMLMessageSigningCredential(signingCredential);
 
-        messageContext.setOutboundMessageIssuer(entityId);
-        messageContext.setRelayState(principal.getRelayState());
 
-        encoder.encode(messageContext);
+        BasicSAMLMessageContext message = new BasicSAMLMessageContext();
+        message.setOutboundMessageTransport(new HttpServletResponseAdapter(response, false));
+        // SingleSignOnServiceImpl
+        message.setPeerEntityEndpoint(endpoint);
+        message.setOutboundSAMLMessage(authResponse);
+        // BasicX509Credential
+        message.setOutboundSAMLMessageSigningCredential(signingCredential);
+        // http://mock-idp
+        message.setOutboundMessageIssuer(entityId);
+        message.setRelayState(principal.getRelayState());
+        // 将编码的SAML响应返回给浏览器
+        encoder.encode(message);
 
     }
 
