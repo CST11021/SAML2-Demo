@@ -3,7 +3,7 @@ package mujina.service;
 import mujina.saml.SAMLAttribute;
 import mujina.saml.SAMLBuilder;
 import mujina.saml.SAMLPrincipal;
-import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.opensaml.saml2.core.Attribute;
 import org.opensaml.xml.XMLObject;
 import org.springframework.security.saml.SAMLCredential;

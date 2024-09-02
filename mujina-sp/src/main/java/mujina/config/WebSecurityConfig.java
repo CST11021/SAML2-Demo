@@ -2,11 +2,9 @@ package mujina.config;
 
 import mujina.saml.KeyStoreLocator;
 import mujina.saml.ProxiedSAMLContextProviderLB;
-import mujina.service.DefaultSAMLUserDetailsService;
 import mujina.sp.ConfigurableSAMLEntryPoint;
 import mujina.sp.DefaultMetadataDisplayFilter;
 import mujina.sp.ResourceMetadataProvider;
-import mujina.sp.RoleSAMLAuthenticationProvider;
 import org.apache.velocity.app.VelocityEngine;
 import org.opensaml.saml2.metadata.provider.MetadataProvider;
 import org.opensaml.saml2.metadata.provider.MetadataProviderException;
@@ -20,13 +18,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.saml.SAMLAuthenticationProvider;
 import org.springframework.security.saml.SAMLEntryPoint;
 import org.springframework.security.saml.SAMLProcessingFilter;
 import org.springframework.security.saml.context.SAMLContextProvider;
@@ -84,18 +80,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private final DefaultResourceLoader defaultResourceLoader = new DefaultResourceLoader();
 
     /**
-     * 配置认证方式等
-     *
-     * @param auth the {@link AuthenticationManagerBuilder} to use
-     * @throws Exception
-     */
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) {
-        // 做认证：auth.userDetailsService(mingYueUserDetailsService).passwordEncoder(new BCryptPasswordEncoder());
-        auth.authenticationProvider(samlAuthenticationProvider());
-    }
-
-    /**
      * http相关的配置，包括登入登出、异常处理、会话管理等
      *
      * @param http the {@link HttpSecurity} to modify
@@ -126,17 +110,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     public void configure(WebSecurity web) {
         web.ignoring().antMatchers("/internal/**");
-    }
-
-
-
-    @Bean
-    public SAMLAuthenticationProvider samlAuthenticationProvider() {
-        SAMLAuthenticationProvider samlAuthenticationProvider = new RoleSAMLAuthenticationProvider();
-        samlAuthenticationProvider.setUserDetails(new DefaultSAMLUserDetailsService());
-        samlAuthenticationProvider.setForcePrincipalAsString(false);
-        samlAuthenticationProvider.setExcludeCredential(true);
-        return samlAuthenticationProvider;
     }
 
     @Bean
@@ -252,7 +225,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         return new StaticBasicParserPool();
     }
 
-    @Bean(name = "parserPoolHolder")
+    @Bean
     public ParserPoolHolder parserPoolHolder() {
         return new ParserPoolHolder();
     }

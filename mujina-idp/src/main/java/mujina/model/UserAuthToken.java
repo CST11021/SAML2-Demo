@@ -15,7 +15,7 @@ import java.util.TreeMap;
  */
 @Getter
 @Setter
-public class FederatedUserAuthenticationToken extends UsernamePasswordAuthenticationToken {
+public class UserAuthToken extends UsernamePasswordAuthenticationToken {
 
     /** 用于存储令牌包含的其他扩展信息 */
     private Map<String, List<String>> attributes = new TreeMap<>();
@@ -27,12 +27,12 @@ public class FederatedUserAuthenticationToken extends UsernamePasswordAuthentica
      * @param credentials
      * @param authorities
      */
-    public FederatedUserAuthenticationToken(Object principal, Object credentials, Collection<? extends GrantedAuthority> authorities) {
+    public UserAuthToken(Object principal, Object credentials, Collection<? extends GrantedAuthority> authorities) {
         super(principal, credentials, authorities);
     }
 
-    public FederatedUserAuthenticationToken clone() {
-        FederatedUserAuthenticationToken clone = new FederatedUserAuthenticationToken(getPrincipal(), getCredentials(), getAuthorities());
+    public UserAuthToken clone() {
+        UserAuthToken clone = new UserAuthToken(getPrincipal(), getCredentials(), getAuthorities());
         clone.setAttributes(attributes);
         return clone;
     }

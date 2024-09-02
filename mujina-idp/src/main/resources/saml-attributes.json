@@ -1,5 +1,10 @@
 [
   {
+    "name": "自定义参数",
+    "id": "whzCustomParam",
+    "multiplicity": false
+  },
+  {
     "name": "urn:mace:dir:attribute-def:eduPersonPrincipalName",
     "id": "eduPersonPrincipalName",
     "multiplicity": false

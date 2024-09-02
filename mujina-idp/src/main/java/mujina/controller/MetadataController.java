@@ -21,7 +21,6 @@ import org.opensaml.xml.signature.SignatureException;
 import org.opensaml.xml.util.XMLHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 import org.springframework.security.saml.key.KeyManager;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -44,9 +43,6 @@ public class MetadataController {
 
     @Autowired
     private IdpConfiguration idpConfiguration;
-
-    @Autowired
-    private Environment environment;
 
     @Value("${idp.saml_binding}")
     private String samlBinding;

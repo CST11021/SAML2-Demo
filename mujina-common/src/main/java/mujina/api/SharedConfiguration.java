@@ -19,17 +19,21 @@ import java.util.Enumeration;
 @Setter
 public abstract class SharedConfiguration {
 
+    /** 在SAML中，entityID是用于唯一标识SAML实体（如身份提供者或服务提供者）的字符串。 */
+    private String entityId;
+
     @JsonIgnore
     private JKSKeyManager keyManager;
     /** 秘钥库密码 */
     private String keystorePassword = "secret";
+
+    /** 是否需要签名 */
     private boolean needsSigning;
     /** 签名算法（默认） */
     private String defaultSignatureAlgorithm = SignatureConstants.ALGO_ID_SIGNATURE_RSA_SHA256;
     /** 签名算法 */
     private String signatureAlgorithm;
-    /** 在SAML中，entityID是用于唯一标识SAML实体（如身份提供者或服务提供者）的字符串。 */
-    private String entityId;
+
 
     public SharedConfiguration(JKSKeyManager keyManager) {
         this.keyManager = keyManager;
@@ -73,6 +77,8 @@ public abstract class SharedConfiguration {
 
     public void setSignatureAlgorithm(String signatureAlgorithm) {
         this.signatureAlgorithm = signatureAlgorithm;
-        BasicSecurityConfiguration.class.cast(Configuration.getGlobalSecurityConfiguration()).registerSignatureAlgorithmURI("RSA", signatureAlgorithm);
+        BasicSecurityConfiguration.class.cast(
+                Configuration.getGlobalSecurityConfiguration()
+        ).registerSignatureAlgorithmURI("RSA", signatureAlgorithm);
     }
 }

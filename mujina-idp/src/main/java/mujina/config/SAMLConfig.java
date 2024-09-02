@@ -35,10 +35,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 @Configuration
-public class SAMLConfig /*implements WebMvcConfigurer*/ {
-
-    @Value("${secure_cookie}")
-    private boolean secureCookie;
+public class SAMLConfig {
 
     @Value("${idp.clock_skew}")
     private int clockSkew;
@@ -46,11 +43,8 @@ public class SAMLConfig /*implements WebMvcConfigurer*/ {
     private int expires;
     @Value("${idp.base_url}")
     private String idpBaseUrl;
-
     @Value("${idp.compare_endpoints}")
     private boolean compareEndpoints;
-
-
     @Value("${idp.entity_id}")
     private String idpEntityId;
     @Value("${idp.private_key}")
@@ -71,8 +65,7 @@ public class SAMLConfig /*implements WebMvcConfigurer*/ {
 
     @Bean
     @Autowired
-    public SAMLMessageHandler samlMessageHandler(IdpConfiguration idpConfiguration, JKSKeyManager keyManager)
-            throws XMLParserException, URISyntaxException {
+    public SAMLMessageHandler samlMessageHandler(IdpConfiguration idpConfiguration, JKSKeyManager keyManager) throws XMLParserException, URISyntaxException {
         StaticBasicParserPool parserPool = new StaticBasicParserPool();
         parserPool.initialize();
 
@@ -102,15 +95,17 @@ public class SAMLConfig /*implements WebMvcConfigurer*/ {
     }
 
     @Bean
-    public JKSKeyManager keyManager() throws InvalidKeySpecException, CertificateException, NoSuchAlgorithmException,
-            KeyStoreException, IOException {
+    public JKSKeyManager keyManager() throws InvalidKeySpecException, CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        // 创建秘钥库
         KeyStore keyStore = KeyStoreLocator.createKeyStore(idpPassphrase);
+        // 添加秘钥对
         KeyStoreLocator.addPrivateKey(keyStore, idpEntityId, idpPrivateKey, idpCertificate, idpPassphrase);
         return new JKSKeyManager(keyStore, Collections.singletonMap(idpEntityId, idpPassphrase), idpEntityId);
     }
 
     @Bean
     public ServletContextInitializer servletContextInitializer() {
+
         // 两个localhost实例会覆盖彼此的会话
         return new ServletContextInitializer() {
 
@@ -118,7 +113,7 @@ public class SAMLConfig /*implements WebMvcConfigurer*/ {
             public void onStartup(ServletContext servletContext) {
                 SessionCookieConfig sessionCookieConfig = servletContext.getSessionCookieConfig();
                 sessionCookieConfig.setName("mujinaIdpSessionId");
-                sessionCookieConfig.setSecure(secureCookie);
+                sessionCookieConfig.setSecure(false);
                 sessionCookieConfig.setHttpOnly(true);
             }
 

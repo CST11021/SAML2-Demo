@@ -33,6 +33,7 @@ public class ForceAuthnFilter extends OncePerRequestFilter {
         } catch (Exception e) {
             throw new IllegalArgumentException(e);
         }
+
         AuthnRequest authnRequest = (AuthnRequest) messageContext.getInboundSAMLMessage();
         if (authnRequest.isForceAuthn()) {
             SecurityContextHolder.getContext().setAuthentication(null);

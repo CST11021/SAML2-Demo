@@ -134,7 +134,7 @@ public class SAMLMessageHandler {
      *
      * @param principal                 用户信息
      * @param authnContextClassRefValue 身份验证的级别
-     * @param response
+     * @param response                  HttpServletResponse
      * @throws MarshallingException
      * @throws SignatureException
      * @throws MessageEncodingException
@@ -173,7 +173,7 @@ public class SAMLMessageHandler {
         message.setOutboundSAMLMessage(authResponse);
         // BasicX509Credential
         message.setOutboundSAMLMessageSigningCredential(signingCredential);
-        // http://mock-idp
+        // IDP的标识：http://mock-idp
         message.setOutboundMessageIssuer(entityId);
         message.setRelayState(principal.getRelayState());
         // 将编码的SAML响应返回给浏览器

@@ -39,7 +39,16 @@ public class SAMLResponseHandler {
             "eewqdHDL2SDOiEAblF1hYy5dDb/Fjc3W0Q==";
 
     public static void main(String[] args) throws Exception {
-        String message = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><samlp:AuthnRequest xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\" AssertionConsumerServiceURL=\"http://localhost:8080/consume.jsp\" ID=\"962518709692618665138986717886225727682\" IsPassive=\"false\" IssueInstant=\"2024-08-05T02:35:27.577Z\" ProtocolBinding=\"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST\" Version=\"2.0\"><samlp:Issuer xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:assertion\">https://www.efesco.com</samlp:Issuer><saml2p:NameIDPolicy xmlns:saml2p=\"urn:oasis:names:tc:SAML:2.0:protocol\" AllowCreate=\"true\" Format=\"urn:oasis:names:tc:SAML:2.0:nameid-format:transient\"/><saml2p:RequestedAuthnContext xmlns:saml2p=\"urn:oasis:names:tc:SAML:2.0:protocol\" Comparison=\"exact\"><saml:AuthnContextClassRef xmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\">urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport</saml:AuthnContextClassRef></saml2p:RequestedAuthnContext></samlp:AuthnRequest>";
+        String message = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+                "<samlp:AuthnRequest xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\" AssertionConsumerServiceURL=\"http://localhost:8080/consume.jsp\" ID=\"962518709692618665138986717886225727682\" IsPassive=\"false\" IssueInstant=\"2024-08-05T02:35:27.577Z\" ProtocolBinding=\"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST\" Version=\"2.0\">" +
+                    "<samlp:Issuer xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:assertion\">" +
+                        "https://www.efesco.com" +
+                    "</samlp:Issuer>" +
+                    "<saml2p:NameIDPolicy xmlns:saml2p=\"urn:oasis:names:tc:SAML:2.0:protocol\" AllowCreate=\"true\" Format=\"urn:oasis:names:tc:SAML:2.0:nameid-format:transient\"/>" +
+                    "<saml2p:RequestedAuthnContext xmlns:saml2p=\"urn:oasis:names:tc:SAML:2.0:protocol\" Comparison=\"exact\"><saml:AuthnContextClassRef xmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\">" +
+                        "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport</saml:AuthnContextClassRef>" +
+                    "</saml2p:RequestedAuthnContext>" +
+                "</samlp:AuthnRequest>";
 
         new SAMLResponseHandler().handle(message);
     }

@@ -57,6 +57,7 @@
                        value="urn:oasis:names:tc:SAML:2.0:ac:classes:Password">
                 <select class="acr-select" id="authn-context-class-ref">
                     <option selected="selected">urn:oasis:names:tc:SAML:2.0:ac:classes:Password</option>
+                    <!-- 可选的身份认证类别 -->
                     <option th:each="ref : ${authnContextClassRefs}"
                             th:value="${ref}"
                             th:text="${ref}">
